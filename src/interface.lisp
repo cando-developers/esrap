@@ -356,8 +356,12 @@ rule.
     (labels ((traced (symbol break fun text position end)
                (when break
                  (break "rule ~S" symbol))
-               (format *trace-output* "~&~V@T~D: ~S ~S?~%"
-                       *trace-level* (1+ *trace-level*) symbol position)
+               (format *trace-output* "~&~V@T~D: ~S ~S[~A]?~%"
+                       *trace-level* (1+ *trace-level*) symbol position
+                       (substitute #\¶ #\Newline
+                                   (subseq text
+                                           (max 0 (- position 2))
+                                           (min (length text) (+ position 3)))))
                (finish-output *trace-output*)
                (let* ((*trace-level* (1+ *trace-level*))
                       (result (funcall fun text position end)))
@@ -443,6 +447,10 @@ with TRACE-RULE."
       (untrace-one (or (find-rule-cell symbol)
                        (undefined-rule symbol))
                    recursive))))
+
+(defun untrace-all-rules ()
+  "Turn off tracing of all nonterminals."
+  (maphash-keys #'untrace-rule *rules*))
 
 (defun rule-expression (rule)
   "Return the parsing expression associated with the RULE."

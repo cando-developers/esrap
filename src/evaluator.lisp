@@ -71,7 +71,7 @@
                 (named-lambda ,name ,lambda-list
                   (macrolet ((with-cached-result
                                  ((symbol position text) &body body)
-                               ;;(declare (ignore symbol position text))
+                               (declare (ignore symbol position text))
                                `(progn ,@body)))
                     ,@body)))))
       (cond

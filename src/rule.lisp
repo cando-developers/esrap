@@ -27,7 +27,10 @@
                (loop :for property :in properties
                      :for index :from 0
                      :collect (list property index))))
-         `(progn
+         `(eval-when (:compile-toplevel :load-toplevel :execute)
+            (deftype rule-properties/packed ()
+              '(unsigned-byte ,(length properties)))
+
             (declaim (inline make-rule-properties rule-property-p))
             (defun make-rule-properties (&key ,@properties)
               (logior ,@(map 'list (lambda (entry)
@@ -47,6 +50,13 @@
           transform-identity
           transform-constant
           transform-text))
+
+(defconstant +default-rule-properties+
+  (make-rule-properties :uses-cache t
+                        :uses-cache-unless-trivial t
+                        :transform-identity nil
+                        :transform-constant nil
+                        :transform-text nil))
 
 ;;; RULE REPRESENTATION AND STORAGE
 ;;;
@@ -174,8 +184,9 @@
    ;; should the rule use the packrat cache?) and its transform
    ;; (e.g. is the transform constant/the identity/text?).
    (%properties :initarg :properties
+                :type rule-properties/packed
                 :reader rule-properties
-                :initform (make-rule-properties))))
+                :initform +default-rule-properties+)))
 
 (setf (documentation 'rule-symbol 'function)
       "Returns the nonterminal associated with the RULE, or NIL if the
